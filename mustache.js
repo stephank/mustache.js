@@ -215,21 +215,28 @@ var Mustache = function() {
         return bool === false || bool === 0 || bool;
       }
 
-      var value;
-      if(is_kinda_truthy(context[name])) {
-        value = context[name];
-      } else if(is_kinda_truthy(this.context[name])) {
-        value = this.context[name];
+      // Takes the value from the context, be it a regular object or model.
+      function getFrom(context) {
+        if(context instanceof Backbone.Model) {
+          return context.get(name);
+        } else {
+          return context[name];
+        }
+      }
+
+      var value = getFrom(context);
+      if(!is_kinda_truthy(value)) {
+        value = getFrom(this.context);
+        if (!is_kinda_truthy(value)) {
+          // silently ignore unkown variables
+          return "";
+        }
       }
 
       if(typeof value === "function") {
-        return value.apply(context);
+        value = value.apply(context);
       }
-      if(value !== undefined) {
-        return value;
-      }
-      // silently ignore unkown variables
-      return "";
+      return value;
     },
 
     // Utility methods
@@ -277,7 +284,8 @@ var Mustache = function() {
     },
 
     is_array: function(a) {
-      return Object.prototype.toString.call(a) === '[object Array]';
+      return Object.prototype.toString.call(a) === '[object Array]' ||
+        a instanceof Backbone.Collection;
     },
 
     /*
