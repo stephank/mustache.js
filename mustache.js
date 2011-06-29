@@ -218,7 +218,7 @@ var Mustache = function() {
       // Takes the value from the context, be it a regular object or model.
       function getFrom(context) {
         if(context instanceof Backbone.Model) {
-          return context.get(name);
+          return context.get(name) || context[name];
         } else {
           return context[name];
         }
